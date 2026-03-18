@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user"></i> Mon profil
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- User Type Badge -->
+                    <div class="text-center mb-4">
+                        {% if user.user_type == 'client' %}
+                            <span class="badge bg-info fs-5">
+                                <i class="fas fa-user"></i> Client
+                            </span>
+                        {% elif user.user_type == 'artisan' %}
+                            <span class="badge bg-success fs-5">
+                                <i class="fas fa-tools"></i> Artisan
+                            </span>
+                        {% elif user.user_type == 'admin' %}
+                            <span class="badge bg-danger fs-5">
+                                <i class="fas fa-shield-alt"></i> Administrateur
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Profile Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-end">
+                            <strong>Email :</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ user.email }}
+                        </div>
+                    </div>
+
+                    {% if user.phone %}
+                        <div class="row mb-3">
+                            <div class="col-md-4 text-end">
+                                <strong>Téléphone :</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ user.phone }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if user.city %}
+                        <div class="row mb-3">
+                            <div class="col-md-4 text-end">
+                                <strong>Ville :</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ user.city }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if user.address %}
+                        <div class="row mb-3">
+                            <div class="col-md-4 text-end">
+                                <strong>Adresse :</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ user.address }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-end">
+                            <strong>Membre depuis :</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ user.created_at|date:"d/m/Y" }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-end">
+                            <strong>Statut du compte :</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Actif</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactif</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Specific Profile Link -->
+                    <hr>
+
+                    <div class="d-grid gap-2 mt-4">
+                        {% if user.is_client %}
+                            <a href="{% url 'clients:dashboard' %}" class="btn btn-info">
+                                <i class="fas fa-tachometer-alt"></i> Mon tableau de bord Client
+                            </a>
+                        {% elif user.is_artisan %}
+                            <a href="{% url 'artisans:profile_detail' %}" class="btn btn-success">
+                                <i class="fas fa-user"></i> Mon profil Artisan complet
+                            </a>
+                            <a href="{% url 'artisans:edit_profile' %}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Modifier mon profil Artisan
+                            </a>
+                            <a href="{% url 'artisans:dashboard' %}" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt"></i> Mon tableau de bord Artisan
+                            </a>
+                        {% elif user.is_staff %}
+                            <a href="{% url 'dashboard:admin_dashboard' %}" class="btn btn-danger">
+                                <i class="fas fa-shield-alt"></i> Panneau d'administration
+                            </a>
+                        {% endif %}
+
+                        <a href="{% url 'accounts:home' %}" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> Retour à l'accueil
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info Cards -->
+            {% if user.is_client and user.client_profile %}
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line"></i> Mes statistiques
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <i class="fas fa-tasks fa-2x text-primary mb-2"></i>
+                                <h4>{{ user.client_profile.total_requests }}</h4>
+                                <small class="text-muted">Demandes envoyées</small>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                <h4>{{ user.client_profile.completed_requests }}</h4>
+                                <small class="text-muted">Services complétés</small>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-heart fa-2x text-danger mb-2"></i>
+                                <h4>{{ user.favorites.count }}</h4>
+                                <small class="text-muted">Artisans favoris</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% elif user.is_artisan and user.artisan_profile %}
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line"></i> Mes statistiques
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                                <h4>{{ user.artisan_profile.rating|floatformat:1 }}</h4>
+                                <small class="text-muted">Note moyenne</small>
+                            </div>
+                            <div class="col-md-3">
+                                <i class="fas fa-comments fa-2x text-info mb-2"></i>
+                                <h4>{{ user.artisan_profile.total_reviews }}</h4>
+                                <small class="text-muted">Avis reçus</small>
+                            </div>
+                            <div class="col-md-3">
+                                <i class="fas fa-check-double fa-2x text-success mb-2"></i>
+                                <h4>{{ user.artisan_profile.total_jobs }}</h4>
+                                <small class="text-muted">Travaux complétés</small>
+                            </div>
+                            <div class="col-md-3">
+                                <i class="fas fa-badge-check fa-2x text-primary mb-2"></i>
+                                <h4>
+                                    {% if user.artisan_profile.verification_status == 'verified' %}
+                                        <span class="badge bg-success">Vérifié</span>
+                                    {% elif user.artisan_profile.verification_status == 'pending' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Rejeté</span>
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">Statut</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

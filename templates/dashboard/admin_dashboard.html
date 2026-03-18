@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Administration{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-dark text-white sidebar py-4" style="min-height: 100vh;">
+            <h5 class="text-center mb-4">
+                <i class="fas fa-shield-alt"></i> Administration
+            </h5>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link text-white active" href="{% url 'dashboard:admin_dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dashboard:verify_artisans' %}">
+                        <i class="fas fa-user-check"></i> Vérifier artisans
+                        {% if pending_artisans > 0 %}
+                            <span class="badge bg-danger">{{ pending_artisans }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dashboard:manage_reviews' %}">
+                        <i class="fas fa-star"></i> Gérer les avis
+                        {% if pending_reviews > 0 %}
+                            <span class="badge bg-warning">{{ pending_reviews }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dashboard:manage_categories' %}">
+                        <i class="fas fa-list"></i> Catégories
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dashboard:users_list' %}">
+                        <i class="fas fa-users"></i> Utilisateurs
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'dashboard:statistics' %}">
+                        <i class="fas fa-chart-bar"></i> Statistiques
+                    </a>
+                </li>
+                <li class="nav-item mt-4">
+                    <a class="nav-link text-white" href="/admin/">
+                        <i class="fas fa-cog"></i> Django Admin
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 py-4">
+            <h2 class="mb-4">Tableau de bord administrateur</h2>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                            <h3 class="mb-0">{{ total_users }}</h3>
+                            <small class="text-muted">Utilisateurs totaux</small>
+                            <hr>
+                            <small>
+                                <i class="fas fa-user text-info"></i> {{ total_clients }} Clients<br>
+                                <i class="fas fa-tools text-success"></i> {{ total_artisans }} Artisans
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-clock fa-3x text-warning mb-3"></i>
+                            <h3 class="mb-0">{{ pending_artisans }}</h3>
+                            <small class="text-muted">Artisans en attente</small>
+                            <hr>
+                            <a href="{% url 'dashboard:verify_artisans' %}" class="btn btn-sm btn-warning">
+                                Vérifier maintenant
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tasks fa-3x text-success mb-3"></i>
+                            <h3 class="mb-0">{{ total_requests }}</h3>
+                            <small class="text-muted">Demandes totales</small>
+                            <hr>
+                            <small>
+                                <span class="badge bg-warning">{{ pending_requests }}</span> En attente<br>
+                                <span class="badge bg-success">{{ completed_requests }}</span> Terminées
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                            <h3 class="mb-0">{{ total_reviews }}</h3>
+                            <small class="text-muted">Avis totaux</small>
+                            <hr>
+                            {% if pending_reviews > 0 %}
+                                <a href="{% url 'dashboard:manage_reviews' %}?filter=pending" class="btn btn-sm btn-info">
+                                    {{ pending_reviews }} à vérifier
+                                </a>
+                            {% else %}
+                                <small class="text-success">Tous vérifiés</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt"></i> Actions rapides
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'dashboard:create_category' %}" class="btn btn-success w-100">
+                                        <i class="fas fa-plus"></i> Nouvelle catégorie
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'dashboard:verify_artisans' %}" class="btn btn-warning w-100">
+                                        <i class="fas fa-check"></i> Vérifier artisans
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'dashboard:manage_reviews' %}" class="btn btn-info w-100">
+                                        <i class="fas fa-star"></i> Modérer avis
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="{% url 'dashboard:statistics' %}" class="btn btn-secondary w-100">
+                                        <i class="fas fa-chart-line"></i> Voir stats
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-plus"></i> Utilisateurs récents
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for user in recent_users %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ user.email }}</strong><br>
+                                                <small class="text-muted">
+                                                    {% if user.user_type == 'client' %}
+                                                        <span class="badge bg-info">Client</span>
+                                                    {% elif user.user_type == 'artisan' %}
+                                                        <span class="badge bg-success">Artisan</span>
+                                                    {% endif %}
+                                                    • {{ user.created_at|date:"d/m/Y" }}
+                                                </small>
+                                            </div>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Actif</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactif</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clock"></i> Demandes récentes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for request in recent_requests %}
+                                    <div class="list-group-item">
+                                        <strong>{{ request.title }}</strong><br>
+                                        <small class="text-muted">
+                                            {{ request.client.email }} →
+                                            {% if request.artisan %}
+                                                {{ request.artisan.email }}
+                                            {% else %}
+                                                En attente
+                                            {% endif %}
+                                        </small><br>
+                                        <small>
+                                            {% if request.status == 'pending' %}
+                                                <span class="badge bg-warning">En attente</span>
+                                            {% elif request.status == 'accepted' %}
+                                                <span class="badge bg-info">Acceptée</span>
+                                            {% elif request.status == 'completed' %}
+                                                <span class="badge bg-success">Terminée</span>
+                                            {% endif %}
+                                            • {{ request.created_at|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

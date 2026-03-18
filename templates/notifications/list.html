@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-bell"></i> Mes notifications</h2>
+                <a href="{% url 'notifications:mark_all_as_read' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-check-double"></i> Tout marquer comme lu
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    {% if notifications %}
+                        <div class="list-group list-group-flush">
+                            {% for notif in notifications %}
+                                <div class="list-group-item {% if not notif.is_read %}bg-light{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <!-- Icon based on type -->
+                                            {% if notif.type == 'request' %}
+                                                <i class="fas fa-file-alt text-primary me-2"></i>
+                                            {% elif notif.type == 'accepted' %}
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                            {% elif notif.type == 'rejected' %}
+                                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                            {% elif notif.type == 'completed' %}
+                                                <i class="fas fa-check-double text-success me-2"></i>
+                                            {% elif notif.type == 'review' %}
+                                                <i class="fas fa-star text-warning me-2"></i>
+                                            {% elif notif.type == 'message' %}
+                                                <i class="fas fa-envelope text-info me-2"></i>
+                                            {% elif notif.type == 'verification' %}
+                                                <i class="fas fa-shield-alt text-primary me-2"></i>
+                                            {% endif %}
+
+                                            <!-- Priority badge -->
+                                            {% if notif.priority == 'high' %}
+                                                <span class="badge bg-danger">Urgent</span>
+                                            {% endif %}
+
+                                            <!-- Message -->
+                                            <span {% if not notif.is_read %}class="fw-bold"{% endif %}>
+                                                {{ notif.message }}
+                                            </span>
+
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> {{ notif.created_at|timesince }} ago
+                                            </small>
+                                        </div>
+
+                                        <div class="btn-group" role="group">
+                                            {% if notif.link %}
+                                                <a href="{% url 'notifications:mark_as_read' notif.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> Voir
+                                                </a>
+                                            {% endif %}
+                                            <a href="{% url 'notifications:delete' notif.id %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Aucune notification</h5>
+                            <p class="text-muted">Vous n'avez pas de notifications pour le moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

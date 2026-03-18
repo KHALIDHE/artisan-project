@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Laisser un avis{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star"></i> Laissez votre avis
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Service Info -->
+                    <div class="alert alert-info">
+                        <h6 class="mb-2">Service: {{ service_request.title }}</h6>
+                        <p class="mb-0">Artisan: <strong>{{ service_request.artisan.artisan_profile.business_name }}</strong></p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Rating -->
+                        <div class="mb-4">
+                            <label class="form-label d-block">{{ form.rating.label }} *</label>
+                            <div class="rating-selection">
+                                {% for value, label in form.rating.field.choices %}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating{{ value }}" value="{{ value }}" required>
+                                        <label class="form-check-label fs-3" for="rating{{ value }}">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= value %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger small">{{ form.rating.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="mb-4">
+                            <label class="form-label">{{ form.comment.label }} *</label>
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                                <div class="text-danger small">{{ form.comment.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Photos -->
+                        <h6 class="mb-3">
+                            <i class="fas fa-camera"></i> Photos (optionnel)
+                        </h6>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.photo1.label }}</label>
+                                {{ form.photo1 }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.photo2.label }}</label>
+                                {{ form.photo2 }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.photo3.label }}</label>
+                                {{ form.photo3 }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-paper-plane"></i> Publier mon avis
+                            </button>
+                            <a href="{% url 'clients:request_detail' service_request.id %}" class="btn btn-outline-secondary">
+                                Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-selection .form-check {
+        margin-bottom: 10px;
+    }
+    .rating-selection label {
+        cursor: pointer;
+    }
+    .rating-selection input[type="radio"]:checked + label i {
+        color: #ffc107 !important;
+    }
+</style>
+{% endblock %}

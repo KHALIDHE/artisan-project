@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Gérer mon portfolio{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-images"></i> Mon Portfolio
+    </h2>
+
+    <div class="row">
+        <!-- Add New Image Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus"></i> Ajouter une image
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.image.label }} *</label>
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                                <div class="text-danger small">{{ form.image.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.title.label }}</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-upload"></i> Ajouter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Gallery -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-th"></i> Mes réalisations ({{ portfolio_images.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if portfolio_images %}
+                        <div class="row">
+                            {% for image in portfolio_images %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}" style="height: 200px; object-fit: cover;">
+                                        <div class="card-body">
+                                            {% if image.title %}
+                                                <h6 class="card-title">{{ image.title }}</h6>
+                                            {% endif %}
+                                            {% if image.description %}
+                                                <p class="card-text small text-muted">{{ image.description|truncatewords:20 }}</p>
+                                            {% endif %}
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar"></i> {{ image.created_at|date:"d/m/Y" }}
+                                                </small>
+                                            </p>
+                                        </div>
+                                        <div class="card-footer bg-white">
+                                            <a href="{% url 'artisans:delete_portfolio_image' image.id %}"
+                                               class="btn btn-sm btn-danger w-100"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette image ?')">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-images fa-4x mb-3 d-block"></i>
+                            <p>Aucune image dans votre portfolio</p>
+                            <p class="small">Ajoutez des photos de vos réalisations pour attirer plus de clients!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'artisans:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

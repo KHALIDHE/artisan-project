@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer une demande{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus"></i> Nouvelle demande de service
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if artisan %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Vous envoyez cette demande à <strong>{{ artisan.artisan_profile.business_name }}</strong>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.title.label }} *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.category.label }} *</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.description.label }} *</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Décrivez votre besoin en détail pour obtenir des devis précis</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.urgency.label }} *</label>
+                                {{ form.urgency }}
+                                {% if form.urgency.errors %}
+                                    <div class="text-danger small">{{ form.urgency.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.preferred_date.label }}</label>
+                                {{ form.preferred_date }}
+                                {% if form.preferred_date.errors %}
+                                    <div class="text-danger small">{{ form.preferred_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.address.label }} *</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small">{{ form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.city.label }} *</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="text-danger small">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">{{ form.photos.label }}</label>
+                            {{ form.photos }}
+                            {% if form.photos.errors %}
+                                <div class="text-danger small">{{ form.photos.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Ajoutez des photos pour aider l'artisan à mieux comprendre votre besoin</small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Note :</strong> Votre demande sera envoyée
+                            {% if artisan %}
+                                à {{ artisan.artisan_profile.business_name }}
+                            {% else %}
+                                aux artisans correspondant à votre catégorie
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Envoyer la demande
+                            </button>
+                            <a href="{% if artisan %}{% url 'clients:artisan_detail' artisan.artisan_profile.id %}{% else %}{% url 'clients:dashboard' %}{% endif %}" class="btn btn-outline-secondary">
+                                Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

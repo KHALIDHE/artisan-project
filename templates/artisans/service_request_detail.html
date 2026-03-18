@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails de la demande{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-alt"></i> {{ service_request.title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Status Badge -->
+                    <div class="mb-3">
+                        {% if service_request.status == 'pending' %}
+                            <span class="badge bg-warning fs-6">En attente de réponse</span>
+                        {% elif service_request.status == 'accepted' %}
+                            <span class="badge bg-info fs-6">Acceptée</span>
+                        {% elif service_request.status == 'in_progress' %}
+                            <span class="badge bg-primary fs-6">En cours</span>
+                        {% elif service_request.status == 'completed' %}
+                            <span class="badge bg-success fs-6">Terminée</span>
+                        {% elif service_request.status == 'rejected' %}
+                            <span class="badge bg-danger fs-6">Refusée</span>
+                        {% endif %}
+
+                        {% if service_request.urgency == 'urgent' %}
+                            <span class="badge bg-danger fs-6 ms-2">
+                                <i class="fas fa-exclamation-triangle"></i> Urgent
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <h5><i class="fas fa-info-circle"></i> Description</h5>
+                    <p class="mb-4">{{ service_request.description }}</p>
+
+                    <!-- Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-calendar"></i> Date de demande :</strong><br>
+                            {{ service_request.created_at|date:"d/m/Y à H:i" }}</p>
+
+                            {% if service_request.preferred_date %}
+                                <p><strong><i class="fas fa-calendar-check"></i> Date souhaitée :</strong><br>
+                                {{ service_request.preferred_date|date:"d/m/Y" }}</p>
+                            {% endif %}
+
+                            <p><strong><i class="fas fa-tag"></i> Catégorie :</strong><br>
+                            {{ service_request.category.name_fr }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-map-marker-alt"></i> Adresse :</strong><br>
+                            {{ service_request.address }}<br>
+                            {{ service_request.city }}</p>
+
+                            {% if service_request.estimated_price %}
+                                <p><strong><i class="fas fa-money-bill-wave"></i> Prix estimé :</strong><br>
+                                {{ service_request.estimated_price }} DH</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Photos -->
+                    {% if service_request.photos %}
+                        <h5><i class="fas fa-images"></i> Photos</h5>
+                        <img src="{{ service_request.photos.url }}" alt="Photo" class="img-fluid rounded mb-4">
+                    {% endif %}
+
+                    <!-- Update Status (if accepted or in progress) -->
+                    {% if service_request.status == 'accepted' or service_request.status == 'in_progress' %}
+                        <div class="border-top pt-4">
+                            <h5><i class="fas fa-tasks"></i> Mettre à jour le statut</h5>
+                            <form method="post" action="{% url 'artisans:update_request_status' service_request.id %}">
+                                {% csrf_token %}
+                                <div class="btn-group" role="group">
+                                    {% if service_request.status == 'accepted' %}
+                                        <button type="submit" name="status" value="in_progress" class="btn btn-primary">
+                                            <i class="fas fa-play"></i> Commencer le travail
+                                        </button>
+                                    {% endif %}
+                                    {% if service_request.status == 'in_progress' %}
+                                        <button type="submit" name="status" value="completed" class="btn btn-success">
+                                            <i class="fas fa-check"></i> Marquer comme terminé
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Client Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Client
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Email :</strong><br>{{ service_request.client.email }}</p>
+                    {% if service_request.client.phone %}
+                        <p><strong>Téléphone :</strong><br>{{ service_request.client.phone }}</p>
+                    {% endif %}
+                    <a href="#" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-comments"></i> Contacter
+                    </a>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            {% if service_request.status == 'pending' %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-reply"></i> Répondre
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                {{ form.action }}
+                            </div>
+
+                            <div class="mb-3" id="price-field">
+                                <label class="form-label">{{ form.estimated_price.label }}</label>
+                                {{ form.estimated_price }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.response_message.label }}</label>
+                                {{ form.response_message }}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-paper-plane"></i> Envoyer la réponse
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'artisans:service_requests_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+</div>
+{% endblock %}

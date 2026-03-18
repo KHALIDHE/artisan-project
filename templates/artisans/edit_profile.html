@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier mon profil{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-edit"></i> Modifier mon profil
+    </h2>
+
+    <div class="card shadow">
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Informations de base -->
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-info"></i> Informations de base
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label">{{ form.business_name.label }} *</label>
+                    {{ form.business_name }}
+                    {% if form.business_name.errors %}
+                        <div class="text-danger small">{{ form.business_name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">{{ form.bio.label }} *</label>
+                    {{ form.bio }}
+                    {% if form.bio.errors %}
+                        <div class="text-danger small">{{ form.bio.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted">Décrivez vos services, votre expérience, vos compétences...</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">{{ form.experience_years.label }}</label>
+                    {{ form.experience_years }}
+                    {% if form.experience_years.errors %}
+                        <div class="text-danger small">{{ form.experience_years.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Catégories -->
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-list"></i> Catégories de services *
+                </h5>
+                <div class="mb-4">
+                    {{ form.categories }}
+                    {% if form.categories.errors %}
+                        <div class="text-danger small">{{ form.categories.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Photos -->
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-camera"></i> Photos
+                </h5>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.profile_photo.label }}</label>
+                        {% if form.instance.profile_photo %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.profile_photo.url }}" alt="Current" class="img-thumbnail" style="max-width: 200px;">
+                                <p class="small text-muted">Photo actuelle</p>
+                            </div>
+                        {% endif %}
+                        {{ form.profile_photo }}
+                        {% if form.profile_photo.errors %}
+                            <div class="text-danger small">{{ form.profile_photo.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.cover_photo.label }}</label>
+                        {% if form.instance.cover_photo %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.cover_photo.url }}" alt="Current" class="img-thumbnail" style="max-width: 200px;">
+                                <p class="small text-muted">Photo actuelle</p>
+                            </div>
+                        {% endif %}
+                        {{ form.cover_photo }}
+                        {% if form.cover_photo.errors %}
+                            <div class="text-danger small">{{ form.cover_photo.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-file-alt"></i> Documents de vérification
+                </h5>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.id_card.label }}</label>
+                        {% if form.instance.id_card %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.id_card.url }}" alt="Current" class="img-thumbnail" style="max-width: 200px;">
+                                <p class="small text-muted">Document actuel</p>
+                            </div>
+                        {% endif %}
+                        {{ form.id_card }}
+                        {% if form.id_card.errors %}
+                            <div class="text-danger small">{{ form.id_card.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.business_license.label }}</label>
+                        {% if form.instance.business_license %}
+                            <div class="mb-2">
+                                <img src="{{ form.instance.business_license.url }}" alt="Current" class="img-thumbnail" style="max-width: 200px;">
+                                <p class="small text-muted">Document actuel</p>
+                            </div>
+                        {% endif %}
+                        {{ form.business_license }}
+                        {% if form.business_license.errors %}
+                            <div class="text-danger small">{{ form.business_license.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Disponibilité -->
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-clock"></i> Disponibilité
+                </h5>
+
+                <div class="form-check mb-3">
+                    {{ form.is_available }}
+                    <label class="form-check-label" for="{{ form.is_available.id_for_label }}">
+                        {{ form.is_available.label }}
+                    </label>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">{{ form.availability_note.label }}</label>
+                    {{ form.availability_note }}
+                    {% if form.availability_note.errors %}
+                        <div class="text-danger small">{{ form.availability_note.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Enregistrer les modifications
+                    </button>
+                    <a href="{% url 'artisans:profile_detail' %}" class="btn btn-outline-secondary">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

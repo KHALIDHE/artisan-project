@@ -1,0 +1,9 @@
+# .gitignore tells Git which files it should not track.
+venv/
+*.pyc
+__pycache__/
+*.sqlite3
+.env
+media/
+*.log
+.DS_Store

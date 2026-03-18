@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-user"></i> Mon profil professionnel
+    </h2>
+
+    <!-- Verification Status Alert -->
+    {% if artisan_profile.verification_status == 'pending' %}
+        <div class="alert alert-warning">
+            <i class="fas fa-clock"></i>
+            <strong>Profil en attente de vérification</strong> - Votre profil est en cours de vérification par notre équipe.
+        </div>
+    {% elif artisan_profile.verification_status == 'verified' %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <strong>Profil vérifié</strong> - Votre profil a été approuvé !
+        </div>
+    {% elif artisan_profile.verification_status == 'rejected' %}
+        <div class="alert alert-danger">
+            <i class="fas fa-times-circle"></i>
+            <strong>Profil rejeté</strong> - Veuillez mettre à jour vos informations et documents.
+            <a href="{% url 'artisans:edit_profile' %}" class="alert-link">Modifier mon profil</a>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Profile Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            {% if artisan_profile.profile_photo %}
+                                <img src="{{ artisan_profile.profile_photo.url }}" alt="Profile" class="img-fluid rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-5x text-secondary mb-3"></i>
+                            {% endif %}
+
+                            <div class="mb-2">
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="fas fa-star"></i> {{ artisan_profile.rating|floatformat:1 }}
+                                </span>
+                            </div>
+
+                            <small class="text-muted">{{ artisan_profile.total_reviews }} avis</small>
+                        </div>
+
+                        <div class="col-md-8">
+                            <h3>{{ artisan_profile.business_name }}</h3>
+
+                            <div class="mb-3">
+                                {% if artisan_profile.verification_status == 'verified' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Vérifié
+                                    </span>
+                                {% endif %}
+
+                                {% if artisan_profile.is_available %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i> Disponible
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-times"></i> Non disponible
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="mb-2">
+                                <i class="fas fa-envelope"></i> <strong>Email:</strong> {{ artisan_profile.user.email }}
+                            </p>
+
+                            {% if artisan_profile.user.phone %}
+                                <p class="mb-2">
+                                    <i class="fas fa-phone"></i> <strong>Téléphone:</strong> {{ artisan_profile.user.phone }}
+                                </p>
+                            {% endif %}
+
+                            <p class="mb-2">
+                                <i class="fas fa-map-marker-alt"></i> <strong>Ville:</strong> {{ artisan_profile.user.city }}
+                            </p>
+
+                            <p class="mb-2">
+                                <i class="fas fa-briefcase"></i> <strong>Expérience:</strong> {{ artisan_profile.experience_years }} ans
+                            </p>
+
+                            <p class="mb-2">
+                                <i class="fas fa-tasks"></i> <strong>Travaux complétés:</strong> {{ artisan_profile.total_jobs }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Biographie
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ artisan_profile.bio }}</p>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Mes catégories de services
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for category in artisan_profile.categories.all %}
+                        <span class="badge bg-primary me-2 mb-2">
+                            <i class="fas {{ category.icon }}"></i> {{ category.name_fr }}
+                        </span>
+                    {% empty %}
+                        <p class="text-muted">Aucune catégorie définie</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Portfolio -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-images"></i> Mon portfolio ({{ portfolio_images.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if portfolio_images %}
+                        <div class="row">
+                            {% for image in portfolio_images %}
+                                <div class="col-md-4 mb-3">
+                                    <img src="{{ image.image.url }}" alt="{{ image.title }}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
+                                    {% if image.title %}
+                                        <p class="small mt-1 mb-0">{{ image.title }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'artisans:manage_portfolio' %}" class="btn btn-primary mt-2">
+                            <i class="fas fa-edit"></i> Gérer mon portfolio
+                        </a>
+                    {% else %}
+                        <p class="text-center text-muted py-4">
+                            <i class="fas fa-images fa-3x mb-3 d-block"></i>
+                            Aucune image dans votre portfolio
+                        </p>
+                        <div class="text-center">
+                            <a href="{% url 'artisans:manage_portfolio' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Ajouter des photos
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Statistics -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Statistiques
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 text-center">
+                        <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                        <h4>{{ artisan_profile.rating|floatformat:1 }}</h4>
+                        <small class="text-muted">Note moyenne</small>
+                    </div>
+                    <hr>
+                    <div class="mb-3 text-center">
+                        <i class="fas fa-comments fa-2x text-info mb-2"></i>
+                        <h4>{{ artisan_profile.total_reviews }}</h4>
+                        <small class="text-muted">Avis reçus</small>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h4>{{ artisan_profile.total_jobs }}</h4>
+                        <small class="text-muted">Travaux complétés</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog"></i> Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'artisans:edit_profile' %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Modifier mon profil
+                        </a>
+
+                        <a href="{% url 'artisans:manage_portfolio' %}" class="btn btn-success">
+                            <i class="fas fa-images"></i> Gérer mon portfolio
+                        </a>
+
+                        <a href="{% url 'artisans:service_requests_list' %}" class="btn btn-info">
+                            <i class="fas fa-tasks"></i> Mes demandes
+                        </a>
+
+                        <a href="{% url 'artisans:dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

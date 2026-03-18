@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Vérifier {{ artisan_profile.business_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-user-check"></i> Vérification: {{ artisan_profile.business_name }}
+    </h2>
+
+    <div class="row">
+        <!-- Profile Info -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations du profil</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Nom de l'entreprise:</strong><br>
+                            {{ artisan_profile.business_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Email:</strong><br>
+                            {{ artisan_profile.user.email }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Téléphone:</strong><br>
+                            {{ artisan_profile.user.phone|default:"Non fourni" }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Ville:</strong><br>
+                            {{ artisan_profile.user.city }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Adresse:</strong><br>
+                        {{ artisan_profile.user.address }}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Années d'expérience:</strong><br>
+                        {{ artisan_profile.experience_years }} ans
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Catégories:</strong><br>
+                        {% for cat in artisan_profile.categories.all %}
+                            <span class="badge bg-secondary">{{ cat.name_fr }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Biographie:</strong><br>
+                        {{ artisan_profile.bio }}
+                    </div>
+
+                    <!-- Photos -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Photo de profil:</strong><br>
+                            {% if artisan_profile.profile_photo %}
+                                <img src="{{ artisan_profile.profile_photo.url }}" alt="Profile" class="img-fluid rounded mt-2" style="max-width: 200px;">
+                            {% else %}
+                                <p class="text-muted">Aucune photo</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Photo de couverture:</strong><br>
+                            {% if artisan_profile.cover_photo %}
+                                <img src="{{ artisan_profile.cover_photo.url }}" alt="Cover" class="img-fluid rounded mt-2" style="max-width: 200px;">
+                            {% else %}
+                                <p class="text-muted">Aucune photo</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Documents de vérification</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Carte d'identité:</strong><br>
+                            {% if artisan_profile.id_card %}
+                                <a href="{{ artisan_profile.id_card.url }}" target="_blank">
+                                    <img src="{{ artisan_profile.id_card.url }}" alt="ID Card" class="img-fluid rounded mt-2" style="max-width: 300px;">
+                                </a>
+                            {% else %}
+                                <p class="text-danger">Non fournie</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Licence professionnelle:</strong><br>
+                            {% if artisan_profile.business_license %}
+                                <a href="{{ artisan_profile.business_license.url }}" target="_blank">
+                                    <img src="{{ artisan_profile.business_license.url }}" alt="License" class="img-fluid rounded mt-2" style="max-width: 300px;">
+                                </a>
+                            {% else %}
+                                <p class="text-muted">Non fournie</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Statut actuel</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if artisan_profile.verification_status == 'pending' %}
+                        <i class="fas fa-clock fa-4x text-warning mb-3"></i>
+                        <h5 class="text-warning">En attente</h5>
+                    {% elif artisan_profile.verification_status == 'verified' %}
+                        <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                        <h5 class="text-success">Vérifié</h5>
+                    {% elif artisan_profile.verification_status == 'rejected' %}
+                        <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+                        <h5 class="text-danger">Rejeté</h5>
+                    {% endif %}
+                    <p class="text-muted small">
+                        Inscrit le: {{ artisan_profile.created_at|date:"d/m/Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Approve/Reject -->
+            {% if artisan_profile.verification_status != 'verified' %}
+                <div class="card shadow-sm border-success">
+                    <div class="card-body">
+                        <h6 class="text-success mb-3">
+                            <i class="fas fa-check-circle"></i> Approuver le profil
+                        </h6>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Êtes-vous sûr de vouloir approuver cet artisan ?')">
+                                <i class="fas fa-check"></i> Approuver
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if artisan_profile.verification_status != 'rejected' %}
+                <div class="card shadow-sm border-danger mt-3">
+                    <div class="card-body">
+                        <h6 class="text-danger mb-3">
+                            <i class="fas fa-times-circle"></i> Rejeter le profil
+                        </h6>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <div class="mb-3">
+                                <label class="form-label">Raison du rejet:</label>
+                                <textarea name="reason" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Êtes-vous sûr de vouloir rejeter cet artisan ?')">
+                                <i class="fas fa-times"></i> Rejeter
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="text-center mt-3">
+                <a href="{% url 'dashboard:verify_artisans' %}" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

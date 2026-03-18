@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Recherche d'artisans - Carte{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 100vh;
+        width: 100%;
+    }
+    .leaflet-popup-content {
+        margin: 10px;
+        min-width: 200px;
+    }
+    .artisan-popup img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-bottom: 8px;
+    }
+    .artisan-card:hover {
+        background-color: #f3f4f6;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="height: 100vh;">
+    <div class="row g-0" style="height: 100%;">
+        <!-- Sidebar -->
+        <div class="col-md-4 bg-light" style="height: 100vh; overflow-y: auto;">
+            <div class="p-3">
+                <h4 class="mb-3">
+                    <i class="fas fa-search"></i> Rechercher des artisans
+                    <span class="badge bg-primary" id="artisanCount">0</span>
+                </h4>
+
+                <!-- Filtres -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <form id="searchForm">
+                            <div class="mb-3">
+                                <label class="form-label">Catégorie</label>
+                                <select class="form-select" id="categoryFilter">
+                                    <option value="">Toutes les catégories</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}">{{ cat.name_fr }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ville</label>
+                                <input type="text" class="form-control" id="cityFilter" placeholder="Ex: Rabat">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Note minimale</label>
+                                <select class="form-select" id="ratingFilter">
+                                    <option value="">Toutes les notes</option>
+                                    <option value="4">4+ étoiles</option>
+                                    <option value="3">3+ étoiles</option>
+                                    <option value="2">2+ étoiles</option>
+                                </select>
+                            </div>
+
+                            <button type="button" class="btn btn-primary w-100 mb-2" onclick="searchArtisans()">
+                                <i class="fas fa-search"></i> Rechercher
+                            </button>
+
+                            <button type="button" class="btn btn-outline-info w-100" onclick="useMyLocation()">
+                                <i class="fas fa-crosshairs"></i> Ma position
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Liste -->
+                <div id="artisansList">
+                    <p class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte -->
+        <div class="col-md-8">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bouton retour -->
+<a href="{% url 'clients:search_artisans' %}" class="btn btn-primary position-fixed" style="bottom: 20px; left: 20px; z-index: 1000;">
+    <i class="fas fa-list"></i> Vue liste
+</a>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let map;
+let markers = [];
+let markersLayer;
+
+// Initialiser la carte
+function initMap() {
+    // Centre sur Rabat
+    map = L.map('map').setView([33.9716, -6.8498], 12);
+
+    // Ajouter la couche OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Créer un groupe de couches pour les marqueurs
+    markersLayer = L.layerGroup().addTo(map);
+
+    // Demander la géolocalisation
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+
+                // Centrer sur la position de l'utilisateur
+                map.setView([userLat, userLng], 13);
+
+                // Ajouter un marqueur pour l'utilisateur
+                L.circleMarker([userLat, userLng], {
+                    radius: 10,
+                    fillColor: "#4285F4",
+                    color: "#ffffff",
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 1
+                }).addTo(map).bindPopup("📍 Vous êtes ici");
+            },
+            () => {
+                console.log("Géolocalisation refusée");
+            }
+        );
+    }
+
+    // Charger les artisans
+    loadArtisans();
+}
+
+// Charger les artisans
+function loadArtisans(filters = {}) {
+    const params = new URLSearchParams(filters);
+
+    fetch(`{% url 'clients:api_artisans' %}?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            displayArtisansOnMap(data.artisans);
+            displayArtisansList(data.artisans);
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            document.getElementById('artisansList').innerHTML =
+                '<div class="alert alert-danger">Erreur de chargement</div>';
+        });
+}
+
+// Afficher sur la carte
+function displayArtisansOnMap(artisans) {
+    // Supprimer les anciens marqueurs
+    markersLayer.clearLayers();
+    markers = [];
+
+    if (artisans.length === 0) return;
+
+    // Ajouter les nouveaux marqueurs
+    artisans.forEach(artisan => {
+        // Couleur selon la note
+        const color = artisan.rating >= 4 ? '#10b981' : artisan.rating >= 3 ? '#f59e0b' : '#ef4444';
+
+        // Créer le marqueur
+        const marker = L.circleMarker([artisan.latitude, artisan.longitude], {
+            radius: 8,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(markersLayer);
+
+        // Contenu du popup
+        const stars = '★'.repeat(Math.round(artisan.rating)) + '☆'.repeat(5 - Math.round(artisan.rating));
+
+        const popupContent = `
+            <div class="artisan-popup">
+                ${artisan.profile_photo ? `<img src="${artisan.profile_photo}" alt="${artisan.business_name}">` : ''}
+                <h6 class="mb-2">${artisan.business_name}</h6>
+                <div class="text-warning mb-2">${stars} ${artisan.rating.toFixed(1)}</div>
+                <p class="mb-1 small"><i class="fas fa-map-marker-alt"></i> ${artisan.city}</p>
+                ${artisan.phone ? `<p class="mb-2 small"><i class="fas fa-phone"></i> ${artisan.phone}</p>` : ''}
+                <a href="${artisan.url}" class="btn btn-primary btn-sm w-100">
+                    <i class="fas fa-eye"></i> Voir le profil
+                </a>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+        markers.push(marker);
+    });
+
+    // Ajuster la vue
+    if (markers.length > 0) {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+}
+
+// Afficher la liste
+function displayArtisansList(artisans) {
+    const listContainer = document.getElementById('artisansList');
+    const countBadge = document.getElementById('artisanCount');
+
+    countBadge.textContent = artisans.length;
+
+    if (artisans.length === 0) {
+        listContainer.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Aucun artisan trouvé
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    artisans.forEach((artisan, index) => {
+        const stars = '★'.repeat(Math.round(artisan.rating));
+        html += `
+            <div class="card mb-2 artisan-card" onclick="focusArtisan(${index})">
+                <div class="card-body p-2">
+                    <div class="d-flex align-items-center">
+                        ${artisan.profile_photo ?
+                            `<img src="${artisan.profile_photo}" class="rounded-circle me-2" width="50" height="50" style="object-fit: cover;">` :
+                            `<div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>`
+                        }
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 small">${artisan.business_name}</h6>
+                            <small class="text-warning">${stars} ${artisan.rating.toFixed(1)}</small>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> ${artisan.city}
+                            </small>
+                        </div>
+                        <a href="${artisan.url}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    listContainer.innerHTML = html;
+}
+
+// Centrer sur un artisan
+function focusArtisan(index) {
+    if (markers[index]) {
+        const marker = markers[index];
+        map.setView(marker.getLatLng(), 15);
+        marker.openPopup();
+    }
+}
+
+// Rechercher
+function searchArtisans() {
+    const category = document.getElementById('categoryFilter').value;
+    const city = document.getElementById('cityFilter').value;
+    const rating = document.getElementById('ratingFilter').value;
+
+    const filters = {};
+    if (category) filters.category = category;
+    if (city) filters.city = city;
+    if (rating) filters.min_rating = rating;
+
+    loadArtisans(filters);
+}
+
+// Ma position
+function useMyLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                map.setView([position.coords.latitude, position.coords.longitude], 14);
+            },
+            () => {
+                alert("Géolocalisation refusée");
+            }
+        );
+    }
+}
+
+// Initialiser au chargement
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

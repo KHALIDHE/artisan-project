@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Conversation{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'messages:inbox' %}" class="btn btn-sm btn-outline-secondary me-3">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+
+                        {% if other_user.is_artisan %}
+                            {% if other_user.artisan_profile.profile_photo %}
+                                <img src="{{ other_user.artisan_profile.profile_photo.url }}" alt="Photo" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-3x text-secondary me-3"></i>
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-0">{{ other_user.artisan_profile.business_name }}</h5>
+                                <small class="text-muted">Artisan</small>
+                            </div>
+                        {% else %}
+                            {% if other_user.client_profile.profile_photo %}
+                                <img src="{{ other_user.client_profile.profile_photo.url }}" alt="Photo" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-3x text-secondary me-3"></i>
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-0">{{ other_user.email }}</h5>
+                                <small class="text-muted">Client</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="card shadow-sm mb-3" style="height: 500px; overflow-y: auto;">
+                <div class="card-body" id="messages-container">
+                    {% if conversation_messages %}
+                        {% for message in conversation_messages %}
+                            <div class="mb-3 {% if message.sender == user %}text-end{% endif %}">
+                                <div class="d-inline-block" style="max-width: 70%;">
+                                    <div class="p-3 rounded {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">
+                                        <p class="mb-1">{{ message.content }}</p>
+                                        <small class="{% if message.sender == user %}text-white-50{% else %}text-muted{% endif %}">
+                                            {{ message.created_at|date:"H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-comments fa-3x mb-3"></i>
+                            <p>Aucun message dans cette conversation</p>
+                            <p class="small">Envoyez le premier message !</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Send Message Form -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <textarea name="content" class="form-control" rows="2" placeholder="Écrivez votre message..." required></textarea>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Envoyer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto scroll to bottom
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+</script>
+{% endblock %}

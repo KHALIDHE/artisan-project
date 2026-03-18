@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes demandes{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-tasks"></i> Mes demandes de service
+    </h2>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a href="?status=all" class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-list"></i> Toutes
+                </a>
+                <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                    <i class="fas fa-clock"></i> En attente
+                </a>
+                <a href="?status=accepted" class="btn {% if status_filter == 'accepted' %}btn-info{% else %}btn-outline-info{% endif %}">
+                    <i class="fas fa-check"></i> Acceptées
+                </a>
+                <a href="?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-spinner"></i> En cours
+                </a>
+                <a href="?status=completed" class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="fas fa-check-circle"></i> Terminées
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create New Request Button -->
+    <div class="mb-4">
+        <a href="{% url 'clients:create_service_request' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nouvelle demande
+        </a>
+    </div>
+
+    <!-- Requests List -->
+    <div class="row">
+        {% if service_requests %}
+            {% for request in service_requests %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">{{ request.title }}</h5>
+                                {% if request.status == 'pending' %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% elif request.status == 'accepted' %}
+                                    <span class="badge bg-info">Acceptée</span>
+                                {% elif request.status == 'in_progress' %}
+                                    <span class="badge bg-primary">En cours</span>
+                                {% elif request.status == 'completed' %}
+                                    <span class="badge bg-success">Terminée</span>
+                                {% elif request.status == 'rejected' %}
+                                    <span class="badge bg-danger">Refusée</span>
+                                {% elif request.status == 'cancelled' %}
+                                    <span class="badge bg-secondary">Annulée</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="card-text text-muted small">
+                                {{ request.description|truncatewords:20 }}
+                            </p>
+
+                            <!-- Category -->
+                            {% if request.category %}
+                                <p class="mb-2">
+                                    <span class="badge bg-secondary">
+                                        <i class="fas {{ request.category.icon }}"></i> {{ request.category.name_fr }}
+                                    </span>
+                                </p>
+                            {% endif %}
+
+                            <!-- Urgency -->
+                            <p class="mb-2">
+                                <strong>Urgence:</strong>
+                                {% if request.urgency == 'urgent' %}
+                                    <span class="badge bg-danger">Urgente</span>
+                                {% elif request.urgency == 'high' %}
+                                    <span class="badge bg-warning">Haute</span>
+                                {% elif request.urgency == 'medium' %}
+                                    <span class="badge bg-info">Moyenne</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Basse</span>
+                                {% endif %}
+                            </p>
+
+                            <!-- Location -->
+                            <p class="mb-2">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                <strong>Lieu:</strong> {{ request.city }}
+                            </p>
+
+                            <!-- Date -->
+                            <p class="mb-2">
+                                <i class="fas fa-calendar"></i>
+                                <strong>Créée le:</strong> {{ request.created_at|date:"d/m/Y" }}
+                            </p>
+
+                            <!-- Artisan -->
+                            {% if request.artisan %}
+                                <p class="mb-2">
+                                    <i class="fas fa-user"></i>
+                                    <strong>Artisan:</strong> {{ request.artisan.artisan_profile.business_name }}
+                                </p>
+                            {% else %}
+                                <p class="mb-2 text-muted">
+                                    <i class="fas fa-user-times"></i> Aucun artisan assigné
+                                </p>
+                            {% endif %}
+
+                            <!-- Price -->
+                            {% if request.estimated_price %}
+                                <p class="mb-3">
+                                    <i class="fas fa-money-bill-wave text-success"></i>
+                                    <strong>Prix estimé:</strong> {{ request.estimated_price }} DH
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer bg-white">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'clients:request_detail' request.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir les détails
+                                </a>
+
+                                {% if request.status == 'completed' and not request.review %}
+                                    <a href="{% url 'clients:create_review' request.id %}" class="btn btn-warning">
+                                        <i class="fas fa-star"></i> Laisser un avis
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucune demande</h5>
+                        <p class="text-muted">
+                            {% if status_filter == 'all' %}
+                                Vous n'avez pas encore créé de demande
+                            {% else %}
+                                Aucune demande avec ce statut
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'clients:create_service_request' %}" class="btn btn-success mt-3">
+                            <i class="fas fa-plus"></i> Créer ma première demande
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{% url 'clients:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes artisans favoris{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-heart text-danger"></i> Mes artisans favoris
+    </h2>
+
+    <div class="row">
+        {% if favorites %}
+            {% for favorite in favorites %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <!-- Cover Photo -->
+                        {% if favorite.artisan.artisan_profile.cover_photo %}
+                            <img src="{{ favorite.artisan.artisan_profile.cover_photo.url }}" class="card-img-top" alt="Cover" style="height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary" style="height: 150px;"></div>
+                        {% endif %}
+
+                        <div class="card-body">
+                            <!-- Profile Photo -->
+                            <div class="text-center mb-3" style="margin-top: -50px;">
+                                {% if favorite.artisan.artisan_profile.profile_photo %}
+                                    <img src="{{ favorite.artisan.artisan_profile.profile_photo.url }}"
+                                         alt="Profile"
+                                         class="rounded-circle border border-white border-3"
+                                         width="80"
+                                         height="80"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user-circle fa-4x text-secondary"></i>
+                                {% endif %}
+                            </div>
+
+                            <!-- Info -->
+                            <h5 class="card-title text-center mb-2">
+                                {{ favorite.artisan.artisan_profile.business_name }}
+                            </h5>
+
+                            <div class="text-center mb-3">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-star"></i> {{ favorite.artisan.artisan_profile.rating|floatformat:1 }}
+                                </span>
+                                <small class="text-muted">({{ favorite.artisan.artisan_profile.total_reviews }} avis)</small>
+                            </div>
+
+                            <!-- Categories -->
+                            <div class="mb-3 text-center">
+                                {% for cat in favorite.artisan.artisan_profile.categories.all|slice:":3" %}
+                                    <span class="badge bg-secondary">{{ cat.name_fr }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Location -->
+                            <p class="text-muted small text-center mb-2">
+                                <i class="fas fa-map-marker-alt"></i> {{ favorite.artisan.user.city }}
+                            </p>
+
+                            <!-- Experience -->
+                            <p class="text-muted small text-center mb-3">
+                                <i class="fas fa-briefcase"></i> {{ favorite.artisan.artisan_profile.experience_years }} ans d'expérience
+                            </p>
+
+                            <!-- Availability -->
+                            <div class="text-center mb-3">
+                                {% if favorite.artisan.artisan_profile.is_available %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Disponible
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-times-circle"></i> Non disponible
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Added date -->
+                            <p class="text-muted small text-center">
+                                <i class="fas fa-heart"></i> Ajouté le {{ favorite.created_at|date:"d/m/Y" }}
+                            </p>
+                        </div>
+
+                        <div class="card-footer bg-white">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'clients:artisan_detail' favorite.artisan.artisan_profile.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir le profil
+                                </a>
+
+                                <a href="{% url 'clients:create_service_request_for_artisan' favorite.artisan.artisan_profile.id %}" class="btn btn-success">
+                                    <i class="fas fa-paper-plane"></i> Envoyer une demande
+                                </a>
+
+                                <a href="{% url 'clients:toggle_favorite' favorite.artisan.artisan_profile.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-heart-broken"></i> Retirer des favoris
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-heart-broken fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucun artisan favori</h5>
+                        <p class="text-muted">
+                            Vous n'avez pas encore ajouté d'artisans à vos favoris
+                        </p>
+                        <a href="{% url 'clients:search_artisans' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-search"></i> Rechercher des artisans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{% url 'clients:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

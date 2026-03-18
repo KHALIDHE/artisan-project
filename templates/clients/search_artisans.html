@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Rechercher des artisans{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-search"></i> Rechercher des artisans
+    </h2>
+
+    <!-- Search Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Catégorie</label>
+                    {{ form.category }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ville</label>
+                    {{ form.city }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Note minimale</label>
+                    {{ form.min_rating }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Distance</label>
+                    {{ form.distance }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        {{ form.available_only }}
+                        <label class="form-check-label" for="{{ form.available_only.id_for_label }}">
+                            {{ form.available_only.label }}
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Popular Categories -->
+    <div class="mb-4">
+        <h5 class="mb-3">Catégories populaires</h5>
+        <div class="d-flex flex-wrap gap-2">
+            {% for category in categories %}
+                <a href="?category={{ category.id }}" class="btn btn-outline-primary">
+                    <i class="fas {{ category.icon }}"></i> {{ category.name_fr }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row">
+        <div class="col-12">
+            <h5 class="mb-3">{{ artisans.count }} artisan{{ artisans.count|pluralize }} trouvé{{ artisans.count|pluralize }}</h5>
+        </div>
+
+        {% if artisans %}
+            {% for artisan in artisans %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <!-- Cover Photo -->
+                        {% if artisan.cover_photo %}
+                            <img src="{{ artisan.cover_photo.url }}" class="card-img-top" alt="Cover" style="height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary" style="height: 150px;"></div>
+                        {% endif %}
+
+                        <div class="card-body">
+                            <!-- Profile Photo -->
+                            <div class="text-center mb-3" style="margin-top: -50px;">
+                                {% if artisan.profile_photo %}
+                                    <img src="{{ artisan.profile_photo.url }}" alt="Profile" class="rounded-circle border border-white border-3" width="80" height="80" style="object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user-circle fa-4x text-secondary"></i>
+                                {% endif %}
+                            </div>
+
+                            <!-- Info -->
+                            <h5 class="card-title text-center mb-2">{{ artisan.business_name }}</h5>
+
+                            <div class="text-center mb-3">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-star"></i> {{ artisan.rating|floatformat:1 }}
+                                </span>
+                                <small class="text-muted">({{ artisan.total_reviews }} avis)</small>
+                            </div>
+
+                            <!-- Categories -->
+                            <div class="mb-3">
+                                {% for cat in artisan.categories.all|slice:":3" %}
+                                    <span class="badge bg-secondary">{{ cat.name_fr }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Location -->
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt"></i> {{ artisan.user.city }}
+                            </p>
+
+                            <!-- Experience -->
+                            <p class="text-muted small mb-3">
+                                <i class="fas fa-briefcase"></i> {{ artisan.experience_years }} ans d'expérience
+                            </p>
+
+                            <!-- Availability -->
+                            {% if artisan.is_available %}
+                                <span class="badge bg-success mb-3">
+                                    <i class="fas fa-check-circle"></i> Disponible
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary mb-3">
+                                    <i class="fas fa-times-circle"></i> Non disponible
+                                </span>
+                            {% endif %}
+
+                            <!-- Bio Preview -->
+                            <p class="card-text small">{{ artisan.bio|truncatewords:15 }}</p>
+                        </div>
+
+                        <div class="card-footer bg-white">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'clients:artisan_detail' artisan.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir le profil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="fas fa-search fa-3x mb-3 d-block"></i>
+                    <h5>Aucun artisan trouvé</h5>
+                    <p>Essayez de modifier vos critères de recherche</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+</style>
+{% endblock %}

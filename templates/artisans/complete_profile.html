@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord Artisan{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light sidebar py-4">
+            <div class="text-center mb-4">
+                {% if artisan_profile.profile_photo %}
+                    <img src="{{ artisan_profile.profile_photo.url }}" alt="Profile" class="rounded-circle mb-2" width="80" height="80" style="object-fit: cover;">
+                {% else %}
+                    <i class="fas fa-user-circle fa-5x text-secondary mb-2"></i>
+                {% endif %}
+                <h6 class="mb-0">{{ artisan_profile.business_name }}</h6>
+                <small class="text-muted">
+                    <i class="fas fa-star text-warning"></i> {{ artisan_profile.rating|floatformat:1 }}
+                </small>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'artisans:dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'artisans:service_requests_list' %}">
+                        <i class="fas fa-tasks"></i> Demandes
+                        {% if pending_requests > 0 %}
+                            <span class="badge bg-danger">{{ pending_requests }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'artisans:profile_detail' %}">
+                        <i class="fas fa-user"></i> Mon profil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'artisans:manage_portfolio' %}">
+                        <i class="fas fa-images"></i> Portfolio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-comments"></i> Messages
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 py-4">
+            <h2 class="mb-4">Tableau de bord</h2>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                            <h3 class="mb-0">{{ pending_requests }}</h3>
+                            <small class="text-muted">Demandes en attente</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-spinner fa-2x text-info mb-2"></i>
+                            <h3 class="mb-0">{{ active_requests }}</h3>
+                            <small class="text-muted">En cours</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h3 class="mb-0">{{ completed_requests }}</h3>
+                            <small class="text-muted">Terminées</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                            <h3 class="mb-0">{{ artisan_profile.rating|floatformat:1 }}</h3>
+                            <small class="text-muted">Note moyenne</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Status -->
+            {% if artisan_profile.verification_status == 'pending' %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Vérification en cours</strong> - Votre profil est en attente de vérification par notre équipe.
+                </div>
+            {% elif artisan_profile.verification_status == 'rejected' %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle"></i>
+                    <strong>Vérification rejetée</strong> - Veuillez mettre à jour vos documents.
+                    <a href="{% url 'artisans:edit_profile' %}" class="alert-link">Modifier mon profil</a>
+                </div>
+            {% elif artisan_profile.verification_status == 'verified' %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Profil vérifié</strong> - Vous pouvez recevoir des demandes!
+                </div>
+            {% endif %}
+
+            <!-- Recent Requests -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Demandes récentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Titre</th>
+                                        <th>Date</th>
+                                        <th>Statut</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for req in recent_requests %}
+                                        <tr>
+                                            <td>{{ req.client.email }}</td>
+                                            <td>{{ req.title }}</td>
+                                            <td>{{ req.created_at|date:"d/m/Y" }}</td>
+                                            <td>
+                                                {% if req.status == 'pending' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% elif req.status == 'accepted' %}
+                                                    <span class="badge bg-info">Acceptée</span>
+                                                {% elif req.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">En cours</span>
+                                                {% elif req.status == 'completed' %}
+                                                    <span class="badge bg-success">Terminée</span>
+                                                {% elif req.status == 'rejected' %}
+                                                    <span class="badge bg-danger">Refusée</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'artisans:service_request_detail' req.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> Voir
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center">
+                            <a href="{% url 'artisans:service_requests_list' %}" class="btn btn-primary">
+                                Voir toutes les demandes <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            Aucune demande pour le moment
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

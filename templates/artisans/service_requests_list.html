@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes demandes{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">
+        <i class="fas fa-tasks"></i> Mes demandes de service
+    </h2>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a href="?status=all" class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-list"></i> Toutes
+                </a>
+                <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                    <i class="fas fa-clock"></i> En attente
+                </a>
+                <a href="?status=accepted" class="btn {% if status_filter == 'accepted' %}btn-info{% else %}btn-outline-info{% endif %}">
+                    <i class="fas fa-check"></i> Acceptées
+                </a>
+                <a href="?status=in_progress" class="btn {% if status_filter == 'in_progress' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-spinner"></i> En cours
+                </a>
+                <a href="?status=completed" class="btn {% if status_filter == 'completed' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="fas fa-check-circle"></i> Terminées
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests List -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if service_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Titre</th>
+                                <th>Catégorie</th>
+                                <th>Ville</th>
+                                <th>Date</th>
+                                <th>Urgence</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in service_requests %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-user"></i> {{ request.client.email|truncatewords:1 }}
+                                    </td>
+                                    <td>
+                                        <strong>{{ request.title }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if request.category %}
+                                            <span class="badge bg-secondary">{{ request.category.name_fr }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt"></i> {{ request.city }}
+                                    </td>
+                                    <td>
+                                        {{ request.created_at|date:"d/m/Y" }}
+                                    </td>
+                                    <td>
+                                        {% if request.urgency == 'urgent' %}
+                                            <span class="badge bg-danger">Urgent</span>
+                                        {% elif request.urgency == 'high' %}
+                                            <span class="badge bg-warning">Haute</span>
+                                        {% elif request.urgency == 'medium' %}
+                                            <span class="badge bg-info">Moyenne</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Basse</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'pending' %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% elif request.status == 'accepted' %}
+                                            <span class="badge bg-info">Acceptée</span>
+                                        {% elif request.status == 'in_progress' %}
+                                            <span class="badge bg-primary">En cours</span>
+                                        {% elif request.status == 'completed' %}
+                                            <span class="badge bg-success">Terminée</span>
+                                        {% elif request.status == 'rejected' %}
+                                            <span class="badge bg-danger">Refusée</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'artisans:service_request_detail' request.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-4x mb-3 d-block"></i>
+                    <h5>Aucune demande</h5>
+                    <p>
+                        {% if status_filter == 'all' %}
+                            Vous n'avez reçu aucune demande pour le moment
+                        {% else %}
+                            Aucune demande avec ce statut
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'artisans:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}
